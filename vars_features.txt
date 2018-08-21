@@ -1,0 +1,29 @@
+X:
+
++ bqvjet
++ muljet
++ projet
++ pt2jet
++ ptljet
++ sphjet
+
+(costheta)
+(costhr)
+(ejet), måske
+- evtn
+
+y:
+	flevt: uu=1, dd=2, ss=3, cc=4, bb=5 (5 eller ej)
+	(nnbjet) valider med
+
+
+Selector:
+	qmatch  
+	njet (select)
+	(samme evnt og så qmatch 1+2, njet=2)
+	(samme evnt og så qmatch 0+1+2, brug kun 1+2, njet=3)
+
+
+Metric:
+	AUC
+	
