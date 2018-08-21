@@ -3,7 +3,7 @@
 """
 Created on Tue May 29 15:54:58 2018
 
-@author: michelsen
+@author: christian michelsen 
 """
 
 # to ignore deprecation warnings:
