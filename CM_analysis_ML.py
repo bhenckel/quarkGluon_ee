@@ -353,7 +353,7 @@ if load_models:
     print('Loading XGB CV res')
     
     #load saved model
-    cvres_xgb_2j_2f = load_model('CM_saved_progress/cvres_xgb_2j_2f_10_percent')
+    cvres_xgb_2j_2f = load_model('./CM_saved_progress/cvres_xgb_2j_2f_10_percent')
 
 else:
     
@@ -372,7 +372,7 @@ else:
                        callbacks = [xgb_cv_early_stopping],
                        )
     #save model
-    save_model(cvres_xgb_2j_2f, 'cvres_xgb_2j_2f_10_percent')
+    save_model(cvres_xgb_2j_2f, './CM_saved_progress/cvres_xgb_2j_2f_10_percent')
 
 
 # get best result:
@@ -594,7 +594,7 @@ dftrainLGB_2j_2f = lightgbm.Dataset(data = dfc_X_MC_2j['train'].values,
 if load_models:
 
     #load saved model
-    cvres_lgb_2j_2f = load_model('cvres_lgb_2j_2f_10_percent')
+    cvres_lgb_2j_2f = load_model('./CM_saved_progress/cvres_lgb_2j_2f_10_percent')
 
 
 else:
@@ -618,7 +618,7 @@ else:
                     ))
 
     #save model
-    save_model(cvres_lgb_2j_2f, 'cvres_lgb_2j_2f_10_percent')
+    save_model(cvres_lgb_2j_2f, './CM_saved_progress/cvres_lgb_2j_2f_10_percent')
 
 
 
