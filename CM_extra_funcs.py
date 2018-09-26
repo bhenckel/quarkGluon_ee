@@ -17,6 +17,8 @@ import scipy as sp
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from iminuit import Minuit
+from iminuit.util import make_func_code
 import uproot
 from os import path
 import os
@@ -997,7 +999,7 @@ def set_limits_on_params(d):
 
 
 
-from iminuit.util import make_func_code
+
 
 
 class minuit_wrapper:  
@@ -1062,7 +1064,7 @@ def get_f_eff_covariance_matrices(cov_dict):
     return cov_f, cov_eff    
 
         
-from iminuit import Minuit
+
 
 class fit_object:
     

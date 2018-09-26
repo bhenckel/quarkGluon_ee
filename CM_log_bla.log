@@ -1,0 +1,19 @@
+
+
+Downsampling to 1.00%
+
+
+ROC for org b-tag, training set 	 0.928123047499016
+ROC for org b-tag, test set 		 0.9292149142674537
+
+
+Best number of estimators based on cross validation: 293
+ROC for XGB-tag, 5-fold CV set 		 0.93202 +/- 0.00074
+Fitting 5 folds for each of 100 candidates, totalling 500 fits
+[CV] colsample_bytree=0.6872700594236812, gamma=3.010121430917521, max_depth=8, min_child_weight=5, subsample=0.5780093202212182 
+[CV] colsample_bytree=0.6872700594236812, gamma=3.010121430917521, max_depth=8, min_child_weight=5, subsample=0.5780093202212182 
+[CV] colsample_bytree=0.6872700594236812, gamma=3.010121430917521, max_depth=8, min_child_weight=5, subsample=0.5780093202212182 
+[CV] colsample_bytree=0.6872700594236812, gamma=3.010121430917521, max_depth=8, min_child_weight=5, subsample=0.5780093202212182 
+[CV] colsample_bytree=0.6872700594236812, gamma=3.010121430917521, max_depth=8, min_child_weight=5, subsample=0.5780093202212182 
+[CV] colsample_bytree=0.5779972601681014, gamma=0.059838768608680676, max_depth=8, min_child_weight=5, subsample=0.8005575058716043 
+[CV] colsample_bytree=0.5779972601681014, gamma=0.059838768608680676, max_depth=8, min_child_weight=5, subsample=0.8005575058716043 

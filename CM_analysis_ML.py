@@ -16,7 +16,7 @@ warnings.filterwarnings(module='sklearn*', action='ignore', category=Deprecation
 
 import numpy as np
 import matplotlib.pyplot as plt
-#import uproot
+import uproot
 import pandas as pd
 import scipy as sp
 import seaborn as sns
@@ -58,15 +58,16 @@ from CM_extra_funcs import (
 #  Initial parameters
 # =============================================================================
 
-down_sample = 1
+down_sample = 0.01
 verbose = False
 cpu_n_jobs = 7
 create_plots = False
 save_plots = False
 create_pairgrid_plot = False
+create_shap_plot = False
 close_figure_after_saving = False
 
-load_models = True
+load_models = False
 
 
 num_boost_round = 10000
@@ -113,7 +114,7 @@ df_MC = df_MC_all.copy() # normal MC
 
 
 # downsample data if needed to 'down_sample'
-if down_sample is not None:
+if down_sample < 1:
     print(f'\n\nDownsampling to {down_sample*100:.2f}%\n\n')
     df_MC = df_MC.iloc[:int((len(df_MC)*down_sample)//2)*2]
 
@@ -341,6 +342,7 @@ cols_to_use = ['rank_test_score', 'params', 'mean_test_score','std_test_score',
 # =============================================================================
 
 
+
 print("\n")
 
 # define training matrix and verbosity level 
@@ -353,7 +355,7 @@ if load_models:
     print('Loading XGB CV res')
     
     #load saved model
-    cvres_xgb_2j_2f = load_model('./CM_saved_progress/cvres_xgb_2j_2f_10_percent')
+    cvres_xgb_2j_2f = load_model(f'./CM_saved_progress/cvres_xgb_2j_2f_{int(down_sample*100)}_percent')
 
 else:
     
@@ -372,7 +374,7 @@ else:
                        callbacks = [xgb_cv_early_stopping],
                        )
     #save model
-    save_model(cvres_xgb_2j_2f, './CM_saved_progress/cvres_xgb_2j_2f_10_percent')
+    save_model(cvres_xgb_2j_2f, f'./CM_saved_progress/cvres_xgb_2j_2f_{int(down_sample*100)}_percent')
 
 
 # get best result:
@@ -398,9 +400,9 @@ clf_xgb_2j_2f.set_params(n_estimators=N_est_cv_best_xgb_2j_2f)
 if load_models:
 
     #load saved model
-    rs_xgb_2j_2f = load_model('rs_xgb_2j_2f_10_percent')
-    rs_xgb_2j_2f_res = load_model('rs_xgb_2j_2f_res_10_percent')
-    clf_xgb_2j_2f = load_model('clf_xgb_2j_2f_10_percent_tmp_cv')
+    rs_xgb_2j_2f = load_model(f'./CM_saved_progress/rs_xgb_2j_2f_{int(down_sample*100)}_percent')
+    rs_xgb_2j_2f_res = load_model(f'./CM_saved_progress/rs_xgb_2j_2f_res_{int(down_sample*100)}_percent')
+    clf_xgb_2j_2f = load_model(f'./CM_saved_progress/clf_xgb_2j_2f_{int(down_sample*100)}_percent_tmp_cv')
     
 
 
@@ -426,9 +428,9 @@ else:
     clf_xgb_2j_2f = rs_xgb_2j_2f.best_estimator_
 
     #save model
-    save_model(rs_xgb_2j_2f, 'rs_xgb_2j_2f_10_percent')
-    save_model(rs_xgb_2j_2f_res, 'rs_xgb_2j_2f_res_10_percent')
-    save_model(clf_xgb_2j_2f, 'clf_xgb_2j_2f_10_percent_tmp_cv')
+    save_model(rs_xgb_2j_2f, f'rs_xgb_2j_2f_{int(down_sample*100)}_percent')
+    save_model(rs_xgb_2j_2f_res, f'rs_xgb_2j_2f_res_{int(down_sample*100)}_percent')
+    save_model(clf_xgb_2j_2f, f'clf_xgb_2j_2f_{int(down_sample*100)}_percent_tmp_cv')
 
 
 print("\n")
@@ -449,7 +451,7 @@ plot_random_search(rs_xgb_2j_2f_res, n_fold, 'XGB 2j 2f, 10% data')
 if load_models:
 
     #load saved model
-    clf_xgb_2j_2f = load_model('clf_xgb_2j_2f_10_percent')
+    clf_xgb_2j_2f = load_model(f'./CM_saved_progress/clf_xgb_2j_2f_{int(down_sample*100)}_percent')
 
 else:
     # fit to data
@@ -461,7 +463,7 @@ else:
                                (dfc_X_MC_2j['test'], dfc_y_MC_2j_2f['test'])])
     
     #save model
-    save_model(clf_xgb_2j_2f, 'clf_xgb_2j_2f_10_percent')
+    save_model(clf_xgb_2j_2f, f'clf_xgb_2j_2f_{int(down_sample*100)}_percent')
     
     
 # predict b-tags and scores
@@ -594,7 +596,7 @@ dftrainLGB_2j_2f = lightgbm.Dataset(data = dfc_X_MC_2j['train'].values,
 if load_models:
 
     #load saved model
-    cvres_lgb_2j_2f = load_model('./CM_saved_progress/cvres_lgb_2j_2f_10_percent')
+    cvres_lgb_2j_2f = load_model(f'./CM_saved_progress/cvres_lgb_2j_2f_{int(down_sample*100)}_percent')
 
 
 else:
@@ -618,7 +620,7 @@ else:
                     ))
 
     #save model
-    save_model(cvres_lgb_2j_2f, './CM_saved_progress/cvres_lgb_2j_2f_10_percent')
+    save_model(cvres_lgb_2j_2f, f'./CM_saved_progress/cvres_lgb_2j_2f_{int(down_sample*100)}_percent')
 
 
 
@@ -643,17 +645,15 @@ clf_lgb_2j_2f.set_params(n_estimators=N_est_cv_best_lgb_2j_2f)
 
 
 
-
-
 #%% LGB: Random Search
 
 if load_models:
     
     #load saved model
     
-    rs_lgb_2j_2f = load_model('rs_lgb_2j_2f_10_percent')
-    rs_lgb_2j_2f_res = load_model('rs_lgb_2j_2f_res_10_percent')
-    clf_lgb_2j_2f = load_model('clf_lgb_2j_2f_10_percent_tmp_cv')
+    rs_lgb_2j_2f = load_model(f'./CM_saved_progress/rs_lgb_2j_2f_{int(down_sample*100)}_percent')
+    rs_lgb_2j_2f_res = load_model(f'./CM_saved_progress/rs_lgb_2j_2f_res_{int(down_sample*100)}_percent')
+    clf_lgb_2j_2f = load_model(f'./CM_saved_progress/clf_lgb_2j_2f_{int(down_sample*100)}_percent_tmp_cv')
 
 else:
     
@@ -677,9 +677,9 @@ else:
     clf_lgb_2j_2f = rs_lgb_2j_2f.best_estimator_
 
     #save model
-    save_model(rs_lgb_2j_2f_res, 'rs_lgb_2j_2f_res_10_percent')
-    save_model(rs_lgb_2j_2f, 'rs_lgb_2j_2f_10_percent')
-    save_model(clf_lgb_2j_2f, 'clf_lgb_2j_2f_10_percent_tmp_cv')
+    save_model(rs_lgb_2j_2f_res, f'rs_lgb_2j_2f_res_{int(down_sample*100)}_percent')
+    save_model(rs_lgb_2j_2f, f'rs_lgb_2j_2f_{int(down_sample*100)}_percent')
+    save_model(clf_lgb_2j_2f, f'clf_lgb_2j_2f_{int(down_sample*100)}_percent_tmp_cv')
 
 
 print("\n")
@@ -697,7 +697,7 @@ plot_random_search(rs_lgb_2j_2f_res, n_fold, 'LGB 2j 2f, 10% data')
 
 if load_models:
     #load saved model
-    clf_lgb_2j_2f = load_model('clf_lgb_2j_2f_10_percent')
+    clf_lgb_2j_2f = load_model(f'./CM_saved_progress/clf_lgb_2j_2f_{int(down_sample*100)}_percent')
 
 
 else:
@@ -709,7 +709,7 @@ else:
                   eval_names = ['train', 'test'],
                       )
     #save model
-    save_model(clf_lgb_2j_2f, 'clf_lgb_2j_2f_10_percent')
+    save_model(clf_lgb_2j_2f, f'clf_lgb_2j_2f_{int(down_sample*100)}_percent')
 
 
 # predict b-tags and scores
@@ -784,53 +784,50 @@ ax.set(xlabel='XGB', ylabel='LGB', title='Rank of proba')
 explainer_xgb_2j_2f = shap.TreeExplainer(clf_xgb_2j_2f)
 explainer_lgb_2j_2f = shap.TreeExplainer(clf_lgb_2j_2f)
 
-xxx=xxx
-
-# load_models = False
-# print("REMEMBER THIS TODO!!!!, load_models = False") # TODO
-
 
 if load_models:
-    shap_values_xgb_2j_2f = load_model('shap_values_xgb_2j_2f_100_percent')
-    shap_values_lgb_2j_2f = load_model('shap_values_lgb_2j_2f_100_percent')
+    shap_values_xgb_2j_2f = load_model(f'./CM_saved_progress/shap_values_xgb_2j_2f_{int(down_sample*100)}_percent')
+    shap_values_lgb_2j_2f = load_model(f'./CM_saved_progress/shap_values_lgb_2j_2f_{int(down_sample*100)}_percent')
 
 else:
     shap_values_xgb_2j_2f = explainer_xgb_2j_2f.shap_values(dfc_X_MC_2j['test'])
     shap_values_lgb_2j_2f = explainer_lgb_2j_2f.shap_values(dfc_X_MC_2j['test'])
 
-    save_model(shap_values_xgb_2j_2f, 'shap_values_xgb_2j_2f_10_percent')
-    save_model(shap_values_lgb_2j_2f, 'shap_values_lgb_2j_2f_10_percent')
+    save_model(shap_values_xgb_2j_2f, f'shap_values_xgb_2j_2f_{int(down_sample*100)}_percent')
+    save_model(shap_values_lgb_2j_2f, f'shap_values_lgb_2j_2f_{int(down_sample*100)}_percent')
 
 
-for shap_values, name in zip([shap_values_xgb_2j_2f, shap_values_lgb_2j_2f], 
-                             ['XGB', 'LGB']):
-
+if create_shap_plot:
     
-    # create a SHAP dependence plot to show the effect of a single feature across the whole dataset
-    plt.figure()
-    shap.dependence_plot("projet", shap_values, dfc_X_MC_2j['test'])
-    plt.title(name)
+    for shap_values, name in zip([shap_values_xgb_2j_2f, shap_values_lgb_2j_2f], 
+                                 ['XGB', 'LGB']):
     
-    # dependence plot with a specific interaction index: here itself.
-    plt.figure()
-    shap.dependence_plot("projet", shap_values, dfc_X_MC_2j['test'], 
-                         show=True, interaction_index="projet")
-    plt.title(name)
-    
-    # summarize the effects of all the features
-    plt.figure()
-    shap.summary_plot(shap_values, dfc_X_MC_2j['test'])
-    plt.title(name)
-    
-    # one-dimensional summary of all feature importances
-    plt.figure()
-    shap.summary_plot(shap_values, dfc_X_MC_2j['test'], plot_type="bar")
-    plt.title(name)
-    
-    # the numerical calculation of above plot is:
-    shap_values_df = pd.DataFrame(shap_values, columns = dfc_X_MC_2j['test'].columns)
-    shap_feature_importance = shap_values_df.abs().mean(0)
-    
+        
+        # create a SHAP dependence plot to show the effect of a single feature across the whole dataset
+        plt.figure()
+        shap.dependence_plot("projet", shap_values, dfc_X_MC_2j['test'])
+        plt.title(name)
+        
+        # dependence plot with a specific interaction index: here itself.
+        plt.figure()
+        shap.dependence_plot("projet", shap_values, dfc_X_MC_2j['test'], 
+                             show=True, interaction_index="projet")
+        plt.title(name)
+        
+        # summarize the effects of all the features
+        plt.figure()
+        shap.summary_plot(shap_values, dfc_X_MC_2j['test'])
+        plt.title(name)
+        
+        # one-dimensional summary of all feature importances
+        plt.figure()
+        shap.summary_plot(shap_values, dfc_X_MC_2j['test'], plot_type="bar")
+        plt.title(name)
+        
+        # the numerical calculation of above plot is:
+        shap_values_df = pd.DataFrame(shap_values, columns = dfc_X_MC_2j['test'].columns)
+        shap_feature_importance = shap_values_df.abs().mean(0)
+        
 
 
 
@@ -968,11 +965,6 @@ all_N_ES = []
 all_AUC_df = []
 
 
-xxx=xxx
-
-
-
-
 for i, index_train in tqdm(enumerate(index_splitted_iter)):
     
     
@@ -1096,20 +1088,20 @@ fig.tight_layout()
 
 
 
-save_model(all_cv_res, 'all_cv_res_100_percent')
-save_model(all_N_ES, 'all_N_ES_100_percent')
-save_model(all_AUC_df, 'all_AUC_df_100_percent')
+save_model(all_cv_res, f'all_cv_res_{{int(down_sample*100)}}_percent')
+save_model(all_N_ES, f'all_N_ES_{int(down_sample*100)}_percent')
+save_model(all_AUC_df, f'all_AUC_df_{int(down_sample*100)}_percent')
 
 
 if load_models:
-    all_cv_res = load_model('all_cv_res_100_percent-tmp')
-    all_N_ES = load_model('all_N_ES_100_percent_tmp')
-    all_AUC_df = load_model('all_AUC_df_100_percent_tmp')
+    all_cv_res = load_model(f'./CM_saved_progress/all_cv_res_{int(down_sample*100)}_percent')
+    all_N_ES = load_model(f'./CM_saved_progress/all_N_ES_{int(down_sample*100)}_percent')
+    all_AUC_df = load_model(f'./CM_saved_progress/all_AUC_df_{int(down_sample*100)}_percent')
 
 else:
-    save_model(all_cv_res, 'all_cv_res_100_percent')
-    save_model(all_N_ES, 'all_N_ES_100_percent')
-    save_model(all_AUC_df, 'all_AUC_df_100_percent')
+    save_model(all_cv_res, f'all_cv_res_{int(down_sample*100)}_percent')
+    save_model(all_N_ES, f'all_N_ES_{int(down_sample*100)}_percent')
+    save_model(all_AUC_df, f'all_AUC_df_{int(down_sample*100)}_percent')
 
 
 
