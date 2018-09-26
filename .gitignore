@@ -1,7 +1,9 @@
 .DS_Store
+._.DS_Store
 data/*
 !data/.gitkeep
-figures/*
-!figures/.gitkeep
+#figures/*
+#!figures/.gitkeep
 __pycache__
 *.pyc
+
