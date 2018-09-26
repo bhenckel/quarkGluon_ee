@@ -16,6 +16,7 @@ import numpy as np
 import scipy as sp
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 import uproot
 from os import path
 import os
@@ -23,16 +24,21 @@ import h5py
 from collections import OrderedDict
 
 
+
+
 #%%
 
-current_palette = sns.color_palette()
+sns.set()
+sns.set(palette='Set1')
+
+current_palette = sns.color_palette("Set1", n_colors=9)
 color_dict = {}
-colors = 'blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'grey', 'lime', 'cyan'
+# colors = 'blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'grey', 'lime', 'cyan'
+colors = ['red', 'blue', 'green', 'purple', 'orange', 'yellow', 'brown', 'pink', 'grey']
+
 for i, color in enumerate(colors):
     color_dict[color] = current_palette[i]
 color_dict['black'] = color_dict['k'] = (0, 0, 0)
-
-
 
 #%%
 
@@ -322,11 +328,22 @@ class CV_EarlyStoppingTrigger:
         self.method = method
         self.maximize_score = maximize_score
         
+        self.reset_class()
+        
+        
+    def reset_class(self):
+        # TODO: implement in HousingPrices
+        
         self.best_score = None
         self.best_iteration = 0
         self.iteration = 0
+        self.do_reset_class = False
+
 
     def __call__(self, callback_env):
+        
+        if self.do_reset_class:
+            self.reset_class()
         
         evaluation_result_list = callback_env.evaluation_result_list
         # print(evaluation_result_list)
@@ -357,6 +374,8 @@ class CV_EarlyStoppingTrigger:
         
         # trigger EarlyStoppingException from callbacks library
         elif self.iteration - self.best_iteration >= self.stopping_rounds:
+
+            self.do_reset_class = True
             
             if self.method.lower() == 'xgb':
                 from xgboost.callback import EarlyStopException
@@ -364,55 +383,131 @@ class CV_EarlyStoppingTrigger:
             
             elif self.method.lower() == 'lgb':
                 from lightgbm.callback import EarlyStopException
+                # print('Raising Early stopping exception for lGB')
+                # print('')
                 raise EarlyStopException(self.iteration, self.best_score)
             
             
         self.iteration += 1
 
+        
 
 
 
 #%%
         
-
-def plot_cv_res(cv_res, ax, method='xgb', n_sigma=1):
-
         
+def get_cv_res_string(cv_res, substrings):
+    col_names = list(cv_res.columns)
+    return cv_res[[name for name in col_names 
+                                if all(x in name for x in substrings)][0]]
+        
+
+def plot_cv_res(cv_res, ax, metrics, method='xgb', n_sigma=1):
+
     if method.lower() == 'xgb':
-        str_train_mean = 'train-auc-mean'
-        str_train_std  = 'train-auc-std'
+        str_train = 'train'
+        str_test  = 'test'
         
-        str_test_mean  = 'test-auc-mean'
-        str_test_std   = 'test-auc-std'
-
     elif method.lower() == 'lgb':
-        str_test_mean  = 'auc-mean'
-        str_test_std   = 'auc-stdv'
+        str_test = ''
+        
+
+    for metric, color in zip(metrics, ['red', 'blue', 'green']):
+        
+        # test results
+        mean = get_cv_res_string(cv_res, ['mean', str_test, metric])
+        std = get_cv_res_string(cv_res, ['std', str_test, metric])
+        
+        
+        ax.plot(cv_res.index, mean, '-', label=metric.capitalize()+', Test',
+                color=color_dict[color])
+        ax.fill_between(cv_res.index, mean+n_sigma*std, mean-n_sigma*std,
+                        color=color_dict[color], interpolate=True, alpha=0.1)
     
+        if method.lower() == 'xgb':
+            # get training results as well
+            
+            mean = get_cv_res_string(cv_res, ['mean', str_train, metric])
+            std = get_cv_res_string(cv_res, ['std', str_train, metric])
+            
+            ax.plot(cv_res.index, mean, '--', label=metric.capitalize()+', Train',
+                    color=color_dict[color])
+            ax.fill_between(cv_res.index, mean+n_sigma*std, mean-n_sigma*std,
+                    color=color_dict[color], interpolate=True, alpha=0.1)
     
-    ax.plot(cv_res.index, cv_res[str_test_mean], '-', label='Test', 
-            color = color_dict['red'])
-    ax.fill_between(cv_res.index, 
-                    cv_res[str_test_mean]+n_sigma*cv_res[str_test_std],
-                    cv_res[str_test_mean]-n_sigma*cv_res[str_test_std],
-                    facecolor=color_dict['red'], interpolate=True,
-                    alpha=0.1)
-    
-    
-    if method.lower() == 'xgb':
-        ax.plot(cv_res.index, cv_res[str_train_mean], '-', label='Train',
-                color = color_dict['blue'])
-        ax.fill_between(cv_res.index, 
-                            cv_res[str_train_mean]+n_sigma*cv_res[str_train_std], 
-                            cv_res[str_train_mean]-n_sigma*cv_res[str_train_std],
-                            facecolor=color_dict['blue'], interpolate=True,
-                            alpha=0.1)
     
     ax.legend(loc='best')
-    ax.set(xlabel='Number of iterations', ylabel='AUC')
+    ax.set(xlabel='Number of iterations', ylabel='Value')
+    
+    
     return None
 
 
+
+def plot_cv_test_results(eval_res, method, metrics, title):
+    
+    
+    if method.lower() == 'xgb':
+        train = 'validation_0'
+        test = 'validation_1'
+    else:
+        train = 'train'
+        test = 'test'
+    
+    
+    eval_steps = range(len(eval_res[train]['auc']))
+
+    fig, ax = plt.subplots(1, 1, sharex=True, figsize=(8, 6))
+    
+    for metric, color in zip(metrics, ['red', 'blue', 'green']):
+    
+        ax.plot(eval_steps, eval_res[train][metric], 
+                color = color_dict[color], ls = '-', 
+                label = metric.capitalize()+'Train')
+        
+        ax.plot(eval_steps, eval_res[test][metric], 
+                color = color_dict[color], ls = '--', 
+                label = metric.capitalize()+'Test')
+        
+        ax.legend()
+        ax.set(xlabel='Number of iterations', ylabel='AUC', title=title)
+
+    return fig, ax
+
+
+
+def plot_random_search(rs_res, n_fold, title, ylim=(0.928, 0.936)):
+    
+    fig, ax = plt.subplots(figsize=(14, 8))
+    
+    ax.errorbar(rs_res.index, 
+                rs_res['mean_test_score'], 
+                yerr=rs_res['std_test_score'] / np.sqrt(n_fold),
+                fmt='.')
+    
+    ax.errorbar(rs_res.index[0], 
+                rs_res['mean_test_score'].iloc[0], 
+                yerr=rs_res['std_test_score'].iloc[0] / np.sqrt(n_fold),
+                fmt='.r', )
+
+    ax.set(title=title, xlabel='Iteration #', ylabel='AUC', ylim=ylim)
+
+    fig.tight_layout()
+
+    return fig, ax
+
+
+#%%
+    
+import pickle
+    
+def save_model(clf, clf_name):
+    pickle.dump(clf, open(clf_name, "wb"))
+
+
+def load_model(clf_name):
+    return pickle.load(open(clf_name, "rb"))
 
 
 #%%
