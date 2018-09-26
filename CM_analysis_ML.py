@@ -208,7 +208,7 @@ if create_plots:
     ax_nnbjet.legend(loc='upper left')
     
     if save_plots:
-        fig_nnbjet.savefig('./figures/nnbjet_histogram.pdf', dpi=300)
+        fig_nnbjet.savefig('./CM_figures/nnbjet_histogram.pdf', dpi=300)
         if close_figure_after_saving:
             plt.close('all')
     
@@ -223,7 +223,7 @@ if create_pairgrid_plot and create_plots:
     g_inputvars.map_upper(plt.scatter, s=0.2, alpha=0.2)
     g_inputvars.map_diag(sns.kdeplot, lw=2)
     if save_plots:
-        g_inputvars.savefig('./figures/pairgrid_input_vars.pdf', dpi=300)
+        g_inputvars.savefig('./CM_figures/pairgrid_input_vars.pdf', dpi=300)
         if close_figure_after_saving:
             plt.close('all')
     
@@ -235,8 +235,8 @@ if create_pairgrid_plot and create_plots:
     g_btags = g_btags.plot_marginals(sns.distplot, bins=100, kde=False)
     g_btags.set_axis_labels("b-tag", "b-tag")
     if save_plots:
-        g_btags.savefig('./figures/pairgrid_btags.pdf', dpi=300)
-        g_btags.savefig('./figures/pairgrid_btags.png', dpi=100)
+        g_btags.savefig('./CM_figures/pairgrid_btags.pdf', dpi=300)
+        g_btags.savefig('./CM_figures/pairgrid_btags.png', dpi=100)
         if close_figure_after_saving:
             plt.close('all')
 
@@ -256,7 +256,7 @@ if create_plots:
     
     fig_overview.tight_layout()
     if save_plots:
-        fig_overview.savefig('./figures/variables_overview.pdf', dpi=300)
+        fig_overview.savefig('./CM_figures/variables_overview.pdf', dpi=300)
         if close_figure_after_saving:
             plt.close('all')
 
@@ -353,7 +353,7 @@ if load_models:
     print('Loading XGB CV res')
     
     #load saved model
-    cvres_xgb_2j_2f = load_model('cvres_xgb_2j_2f_10_percent')
+    cvres_xgb_2j_2f = load_model('./CM_saved_progress/cvres_xgb_2j_2f_10_percent')
 
 else:
     
@@ -372,7 +372,7 @@ else:
                        callbacks = [xgb_cv_early_stopping],
                        )
     #save model
-    save_model(cvres_xgb_2j_2f, 'cvres_xgb_2j_2f_10_percent')
+    save_model(cvres_xgb_2j_2f, './CM_saved_progress/cvres_xgb_2j_2f_10_percent')
 
 
 # get best result:
@@ -547,7 +547,7 @@ if create_plots:
     
     
     if save_plots:
-        fig_roc_curve.savefig('./figures/ROC_curve.pdf', dpi=300)
+        fig_roc_curve.savefig('./CM_figures/ROC_curve.pdf', dpi=300)
         if close_figure_after_saving:
                 plt.close('all')
 
@@ -560,7 +560,7 @@ if create_plots:
     plot_cv_res(cvres_xgb_2j_2f, ax_xgb_2j_2f_cv, metrics_xgb, method='xgb', n_sigma=n_sigma)
     ax_xgb_2j_2f_cv.set(title='XGB: 2-jet, 2 flavours, CV run')
     if save_plots:
-        fig_xgb_2j_2f_cv.savefig('./figures/XGB_2jet_2flavor_CV_run.pdf', dpi=300)
+        fig_xgb_2j_2f_cv.savefig('./CM_figures/XGB_2jet_2flavor_CV_run.pdf', dpi=300)
     
     
     
@@ -571,7 +571,7 @@ if create_plots:
                                                 metrics = metrics_xgb,
                                                 title = 'XGB: 2-jet, 2 flavours, normal run')
     if save_plots:
-        fig_xgb_2j_2f_normal.savefig('./figures/XGB_2jet_2flavor_normal_run.pdf', 
+        fig_xgb_2j_2f_normal.savefig('./CM_figures/XGB_2jet_2flavor_normal_run.pdf', 
                                      dpi=300)
 
         if close_figure_after_saving:
@@ -594,7 +594,7 @@ dftrainLGB_2j_2f = lightgbm.Dataset(data = dfc_X_MC_2j['train'].values,
 if load_models:
 
     #load saved model
-    cvres_lgb_2j_2f = load_model('cvres_lgb_2j_2f_10_percent')
+    cvres_lgb_2j_2f = load_model('./CM_saved_progress/cvres_lgb_2j_2f_10_percent')
 
 
 else:
@@ -618,7 +618,7 @@ else:
                     ))
 
     #save model
-    save_model(cvres_lgb_2j_2f, 'cvres_lgb_2j_2f_10_percent')
+    save_model(cvres_lgb_2j_2f, './CM_saved_progress/cvres_lgb_2j_2f_10_percent')
 
 
 
@@ -732,7 +732,7 @@ if create_plots:
 
 
     if save_plots:
-        fig_lgb_2j_2f_cv.savefig('./figures/LGB_2jet_2flavor_CV_run.pdf', dpi=300)
+        fig_lgb_2j_2f_cv.savefig('./CM_figures/LGB_2jet_2flavor_CV_run.pdf', dpi=300)
         if close_figure_after_saving:
             plt.close('all')
 
@@ -746,7 +746,7 @@ if create_plots:
                                                 title = 'LGB: 2-jet, 2 flavours, normal run')
 
     if save_plots:
-        fig_lgb_2j_2f_normal.savefig('./figures/LGB_2jet_2flavor_normal_run.pdf', 
+        fig_lgb_2j_2f_normal.savefig('./CM_figures/LGB_2jet_2flavor_normal_run.pdf', 
                                      dpi=300)
         if close_figure_after_saving:
             plt.close('all')
