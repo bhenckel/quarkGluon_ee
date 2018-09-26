@@ -6,4 +6,4 @@ data/*
 #!figures/.gitkeep
 __pycache__
 *.pyc
-
+CM_saved_progress/old/*
