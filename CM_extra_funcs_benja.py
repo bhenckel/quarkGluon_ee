@@ -5,10 +5,13 @@ Created on Tue Jul 31 11:52:35 2018
 
 @author: benjamin
 """
+from time import time
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import classification_report, roc_auc_score, roc_curve, auc
+import matplotlib.pyplot as plt
 
 #%%
 
@@ -120,3 +123,31 @@ def SKLRF_Nest_opt(RF, X, y, start, end, nstep, cpu_n_jobs):
     df_results.to_hdf('ntrees_results.h5', key='df', mode='w')
     n_opt_est = df_results.loc[df_results['Scores'] == max(df_results['Scores']), 'Trees'].iloc[0]
     return(df_results, n_opt_est)
+    
+def check_time(checkpoint, note):
+    current_time = time()-checkpoint
+    checkpoint = time()
+    print(f'Time taken to {note}: {current_time:.2f} seconds')
+    return checkpoint
+
+def show_metrics(y, y_predicted, probs, model, color):
+    # Print the Classification report.
+    print(classification_report(y, y_predicted, target_names=["background", "signal"]))
+    print("Area under ROC curve: %.4f"%(roc_auc_score(y,probs)))
+    fpr, tpr, thresholds = roc_curve(y, probs)
+    roc_auc = auc(fpr, tpr)
+    # Plot the ROC curves.
+    plt.plot(fpr, tpr, lw=1, label=f'{model} ROC (area = {roc_auc:.2f})', color=color)
+
+def plot_btags(df, model, saveplots, filename):
+    df[df['flevt'] == 5]['Btag_prob'].hist(bins=100,alpha=1, color = 'b')
+    plt.hist([df[df['flevt'] <= 3]['Btag_prob'], df[df['flevt'] == 4]['Btag_prob']], bins=100, range=(0,1), stacked=True, color = ['r', 'm'], alpha=0.7)
+    plt.xlabel('Btag Probability')
+    plt.ylabel('Count')
+    plt.title(f'{model} Btag Probabilities For 3 Jet Events')
+    if(saveplots): plt.savefig(filename)
+    plt.show()
+
+def btag_df(probs, df):
+    df = pd.DataFrame(data={'Btag_prob': probs ,'flevt': df['flevt'], 'qmatch': df['qmatch'] })
+    return df
